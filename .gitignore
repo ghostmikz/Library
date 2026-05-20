@@ -1,0 +1,5 @@
+lib-server/out/
+lib-client/out/
+*.class
+*.log
+settings.properties
