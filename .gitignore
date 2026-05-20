@@ -1,5 +1,11 @@
 lib-server/out/
 lib-client/out/
+lib-server/build/
+lib-client/build/
+lib-server/dist/
+lib-client/dist/
+nbproject/private/
+nbproject/build-impl.xml
 *.class
 *.log
 settings.properties
