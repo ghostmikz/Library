@@ -26,7 +26,7 @@ public class BookHandler {
     public static Response search(Request req, User caller) {
         try {
             @SuppressWarnings("unchecked")
-            Map<String, Object> d = GSON.fromJson(req.getData().toString(), Map.class);
+            Map<String, Object> d = (Map<String, Object>) req.getData();
             String  query     = (String)  d.get("query");
             String  genre     = (String)  d.get("genre");
             Object  availObj  = d.get("available");
@@ -41,7 +41,7 @@ public class BookHandler {
     public static Response add(Request req, User caller) {
         try {
             @SuppressWarnings("unchecked")
-            Map<String, Object> d = GSON.fromJson(req.getData().toString(), Map.class);
+            Map<String, Object> d = (Map<String, Object>) req.getData();
             String title = (String) d.get("title");
             String author = (String) d.get("author");
             if (title == null || title.isBlank() || author == null || author.isBlank())
@@ -64,7 +64,7 @@ public class BookHandler {
     public static Response update(Request req, User caller) {
         try {
             @SuppressWarnings("unchecked")
-            Map<String, Object> d = GSON.fromJson(req.getData().toString(), Map.class);
+            Map<String, Object> d = (Map<String, Object>) req.getData();
             Book b = new Book();
             b.setId(((Number) d.get("id")).intValue());
             b.setIsbn((String) d.get("isbn"));
@@ -83,7 +83,7 @@ public class BookHandler {
     public static Response delete(Request req, User caller) {
         try {
             @SuppressWarnings("unchecked")
-            Map<String, Object> d = GSON.fromJson(req.getData().toString(), Map.class);
+            Map<String, Object> d = (Map<String, Object>) req.getData();
             int id = ((Number) d.get("id")).intValue();
             DAO.delete(id);
             return Response.ok(null);

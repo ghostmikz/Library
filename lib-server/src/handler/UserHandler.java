@@ -28,7 +28,7 @@ public class UserHandler {
         if (!caller.isAdmin()) return Response.error("Access denied");
         try {
             @SuppressWarnings("unchecked")
-            Map<String, Object> d = GSON.fromJson(req.getData().toString(), Map.class);
+            Map<String, Object> d = (Map<String, Object>) req.getData();
             String username = (String) d.get("username");
             String password = (String) d.get("password");
             String fullName = (String) d.get("fullName");
@@ -52,7 +52,7 @@ public class UserHandler {
         if (!caller.isAdmin()) return Response.error("Access denied");
         try {
             @SuppressWarnings("unchecked")
-            Map<String, Object> d = GSON.fromJson(req.getData().toString(), Map.class);
+            Map<String, Object> d = (Map<String, Object>) req.getData();
             int    id       = ((Number) d.get("id")).intValue();
             String fullName = (String) d.get("fullName");
             String password = (String) d.get("password");
@@ -67,7 +67,7 @@ public class UserHandler {
         if (!caller.isAdmin()) return Response.error("Access denied");
         try {
             @SuppressWarnings("unchecked")
-            Map<String, Object> d = GSON.fromJson(req.getData().toString(), Map.class);
+            Map<String, Object> d = (Map<String, Object>) req.getData();
             int     id     = ((Number) d.get("id")).intValue();
             boolean active = (Boolean) d.get("active");
             if (id == caller.getId()) return Response.error("Cannot deactivate your own account");
@@ -82,7 +82,7 @@ public class UserHandler {
         if (!caller.isAdmin()) return Response.error("Access denied");
         try {
             @SuppressWarnings("unchecked")
-            Map<String, Object> d = GSON.fromJson(req.getData().toString(), Map.class);
+            Map<String, Object> d = (Map<String, Object>) req.getData();
             int id = ((Number) d.get("id")).intValue();
             if (id == caller.getId()) return Response.error("Cannot delete your own account");
             DAO.delete(id);

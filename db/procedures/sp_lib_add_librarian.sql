@@ -4,7 +4,8 @@ DELIMITER $$
 CREATE PROCEDURE sp_lib_add_librarian(
     IN p_username  VARCHAR(50),
     IN p_password  VARCHAR(255),
-    IN p_full_name VARCHAR(100)
+    IN p_full_name VARCHAR(100),
+    IN p_created_by INT
 )
 BEGIN
     INSERT INTO users (username, password_hash, full_name, role)

@@ -14,9 +14,9 @@ public class LoginHandler {
     public static Response handle(Request req) {
         try {
             @SuppressWarnings("unchecked")
-            Map<String, String> data = (Map<String, String>) req.getData();
-            String username = data.get("username");
-            String password = data.get("password");
+            Map<String, Object> data = (Map<String, Object>) req.getData();
+            String username = String.valueOf(data.get("username"));
+            String password = String.valueOf(data.get("password"));
 
             UserDAO dao = new UserDAO();
             User user = dao.findByUsername(username);
