@@ -1,6 +1,12 @@
 CREATE DATABASE IF NOT EXISTS lib_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE lib_db;
 
+-- Application user: can connect from any host (needed for LAN deployments).
+-- Run this as root. Change the password here AND in server.properties if desired.
+CREATE USER IF NOT EXISTS 'lib_user'@'%' IDENTIFIED BY 'lib1234';
+GRANT SELECT, INSERT, UPDATE, DELETE, EXECUTE ON lib_db.* TO 'lib_user'@'%';
+FLUSH PRIVILEGES;
+
 CREATE TABLE IF NOT EXISTS users (
     id            INT PRIMARY KEY AUTO_INCREMENT,
     username      VARCHAR(50)  UNIQUE NOT NULL,

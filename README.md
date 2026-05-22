@@ -10,7 +10,7 @@ Java Swing library management system. Client-server architecture over TCP socket
 
 ## Database Setup
 
-Run `db/schema.sql` first, then each file in `db/procedures/`:
+Run `db/schema.sql` as root (creates the database, tables, and `lib_user`), then load each procedure:
 
 ```sql
 mysql -u root -p < db/schema.sql
@@ -20,8 +20,24 @@ mysql -u root -p < db/procedures/sp_lib_login.sql
 
 Default admin login: `admin` / `123`
 
-The server connects to `localhost:3306` with user `root` / `0312`.  
-To change this, edit `lib-server/src/dao/DatabaseConnection.java`.
+`schema.sql` creates a dedicated app user **`lib_user`** (password `lib1234`) that can connect from any host. The server uses this user by default — no root access needed at runtime.
+
+## LAN Configuration
+
+**Server machine** — edit `server.properties` before starting:
+```properties
+server.port=9091
+db.host=localhost   # or the LAN IP of the MySQL machine
+db.port=3306
+db.user=lib_user
+db.password=lib1234
+```
+
+**Client machines** — edit `client.properties` before starting:
+```properties
+server.host=192.168.1.X   # LAN IP of the server machine
+server.port=9091
+```
 
 ## Running in NetBeans
 
