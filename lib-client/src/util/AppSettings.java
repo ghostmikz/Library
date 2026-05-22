@@ -12,6 +12,14 @@ public class AppSettings {
     private AppSettings() {}
 
     private static void load() {
+        // Load shipped defaults from client.properties first
+        File base = new File("client.properties");
+        if (base.exists()) {
+            try (FileInputStream in = new FileInputStream(base)) {
+                props.load(in);
+            } catch (IOException ignored) {}
+        }
+        // User-saved settings overlay the defaults
         File f = new File(FILE);
         if (f.exists()) {
             try (FileInputStream in = new FileInputStream(f)) {

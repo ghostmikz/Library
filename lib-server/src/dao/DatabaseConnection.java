@@ -1,13 +1,22 @@
 package dao;
 
+import server.ServerSettings;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DatabaseConnection {
-    private static final String URL      = "jdbc:mysql://localhost:3306/lib_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&characterEncoding=UTF-8&useUnicode=true";
-    private static final String USER     = "root";
-    private static final String PASSWORD = "0312";
+    private static final String URL;
+    private static final String USER;
+    private static final String PASSWORD;
+
+    static {
+        String host = ServerSettings.getDbHost();
+        int    port = ServerSettings.getDbPort();
+        URL      = "jdbc:mysql://" + host + ":" + port + "/lib_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&characterEncoding=UTF-8&useUnicode=true";
+        USER     = ServerSettings.getDbUser();
+        PASSWORD = ServerSettings.getDbPassword();
+    }
 
     private static final ThreadLocal<Connection> THREAD_CONN = new ThreadLocal<>();
 

@@ -9,9 +9,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class LibraryServer {
-    private static final int PORT = 9091;
-
     public static void main(String[] args) {
+        int PORT = ServerSettings.getServerPort();
         System.out.println("Library Server starting on port " + PORT + "...");
         try {
             DatabaseConnection.getInstance();
