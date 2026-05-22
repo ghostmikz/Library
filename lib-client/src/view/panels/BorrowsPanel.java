@@ -4,6 +4,7 @@ import i18n.I18n;
 import i18n.LanguageListener;
 import model.Book;
 import model.Borrow;
+import view.Theme;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -39,8 +40,9 @@ public class BorrowsPanel extends JPanel implements LanguageListener {
     private boolean showActiveOnly = true;
 
     public BorrowsPanel() {
-        setLayout(new BorderLayout(8, 8));
-        setBorder(new EmptyBorder(12, 12, 12, 12));
+        setLayout(new BorderLayout(0, 12));
+        setBorder(new EmptyBorder(16, 16, 16, 16));
+        setBackground(Theme.BG);
 
         add(buildToolbar(), BorderLayout.NORTH);
         add(buildTable(),   BorderLayout.CENTER);
@@ -66,19 +68,23 @@ public class BorrowsPanel extends JPanel implements LanguageListener {
 
     private JPanel buildToolbar() {
         JPanel bar = new JPanel(new BorderLayout(8, 0));
+        bar.setOpaque(false);
 
         activeOnlyBox = new JCheckBox(I18n.t("borrows.filter.active"), true);
+        activeOnlyBox.setFont(Theme.regular(13));
+        activeOnlyBox.setForeground(Theme.TEXT_MUTED);
+        activeOnlyBox.setOpaque(false);
         activeOnlyBox.setFocusPainted(false);
         activeOnlyBox.addActionListener(e -> {
             showActiveOnly = activeOnlyBox.isSelected();
             if (refreshListener != null) refreshListener.run();
         });
 
-        lendBtn = new JButton(I18n.t("borrows.lend"));
-        lendBtn.setFocusPainted(false);
+        lendBtn = Theme.primaryBtn(I18n.t("borrows.lend"));
         lendBtn.addActionListener(e -> openLendForm());
 
         JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
+        left.setOpaque(false);
         left.add(activeOnlyBox);
 
         bar.add(left,    BorderLayout.CENTER);
@@ -91,29 +97,28 @@ public class BorrowsPanel extends JPanel implements LanguageListener {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
         table = new JTable(model);
-        table.setRowHeight(26);
-        table.getTableHeader().setReorderingAllowed(false);
+        Theme.styleTable(table);
 
-        // hide id column
         table.getColumnModel().getColumn(0).setMinWidth(0);
         table.getColumnModel().getColumn(0).setMaxWidth(0);
         table.getColumnModel().getColumn(0).setPreferredWidth(0);
 
+        // Colored rows: overdue = red tint, returned = muted
         table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
-            private final Color OVERDUE  = new Color(0xFEE2E2);
-            private final Color RETURNED = new Color(0xF3F4F6);
-            @Override
-            public Component getTableCellRendererComponent(JTable t, Object val, boolean sel, boolean focus, int row, int col) {
-                Component c = super.getTableCellRendererComponent(t, val, sel, focus, row, col);
+            @Override public Component getTableCellRendererComponent(
+                    JTable t, Object v, boolean sel, boolean foc, int row, int col) {
+                Component c = super.getTableCellRendererComponent(t, v, sel, foc, row, col);
                 if (!sel) {
                     int id = (int) model.getValueAt(row, 0);
                     Borrow b = allBorrows.stream().filter(x -> x.getId() == id).findFirst().orElse(null);
                     if (b != null) {
-                        if (b.isOverdue())        c.setBackground(OVERDUE);
-                        else if (b.isReturned())  c.setBackground(RETURNED);
-                        else                      c.setBackground(Color.WHITE);
+                        if      (b.isOverdue())   c.setBackground(Theme.OVERDUE_BG);
+                        else if (b.isReturned())  c.setBackground(Theme.RETURNED_BG);
+                        else                      c.setBackground(row % 2 == 0 ? Theme.SURFACE : Theme.ROW_ALT);
                     }
                 }
+                setFont(Theme.regular(13));
+                setBorder(new EmptyBorder(0, 12, 0, 12));
                 return c;
             }
         });
@@ -121,16 +126,17 @@ public class BorrowsPanel extends JPanel implements LanguageListener {
         table.getSelectionModel().addListSelectionListener(e -> updateButtons());
 
         JScrollPane sp = new JScrollPane(table);
-        view.MainFrame.modernScrollBar(sp);
+        sp.setBorder(BorderFactory.createLineBorder(Theme.BORDER, 1, true));
+        Theme.modernScrollBar(sp);
         return sp;
     }
 
     private JPanel buildActions() {
-        JPanel bar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
-        returnBtn  = new JButton(I18n.t("borrows.return"));
-        refreshBtn = new JButton(I18n.t("borrows.refresh"));
-        returnBtn.setFocusPainted(false);
-        refreshBtn.setFocusPainted(false);
+        JPanel bar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        bar.setOpaque(false);
+
+        returnBtn  = Theme.secondaryBtn(I18n.t("borrows.return"));
+        refreshBtn = Theme.secondaryBtn(I18n.t("borrows.refresh"));
         returnBtn.setEnabled(false);
 
         returnBtn.addActionListener(e -> {
@@ -182,13 +188,13 @@ public class BorrowsPanel extends JPanel implements LanguageListener {
     private void openLendForm() {
         JDialog dlg = new JDialog((Frame) SwingUtilities.getWindowAncestor(this),
                 I18n.t("borrows.form.title"), true);
-        dlg.setSize(400, 360);
+        dlg.setSize(420, 380);
         dlg.setLocationRelativeTo(this);
 
-        JPanel form = new JPanel(new GridLayout(0, 2, 8, 8));
-        form.setBorder(new EmptyBorder(16, 16, 8, 16));
+        JPanel form = new JPanel(new GridLayout(0, 2, 10, 10));
+        form.setBorder(new EmptyBorder(20, 20, 12, 20));
+        form.setBackground(Theme.SURFACE);
 
-        // Build book dropdown from availableBooks
         DefaultComboBoxModel<String> bookModel = new DefaultComboBoxModel<>();
         List<Integer> bookIds = new ArrayList<>();
         for (Book bk : availableBooks) {
@@ -199,6 +205,7 @@ public class BorrowsPanel extends JPanel implements LanguageListener {
             }
         }
         JComboBox<String> bookCombo = new JComboBox<>(bookModel);
+        bookCombo.setFont(Theme.regular(13));
 
         JTextField borrowerF = new JTextField();
         JTextField phoneF    = new JTextField();
@@ -206,24 +213,25 @@ public class BorrowsPanel extends JPanel implements LanguageListener {
         JTextField dueF      = new JTextField(LocalDate.now().plusDays(14).toString());
         JTextField notesF    = new JTextField();
 
-        form.add(new JLabel(I18n.t("borrows.form.book")));     form.add(bookCombo);
-        form.add(new JLabel(I18n.t("borrows.form.borrower"))); form.add(borrowerF);
-        form.add(new JLabel(I18n.t("borrows.form.phone")));    form.add(phoneF);
-        form.add(new JLabel(I18n.t("borrows.form.date")));     form.add(dateF);
-        form.add(new JLabel(I18n.t("borrows.form.due")));      form.add(dueF);
-        form.add(new JLabel(I18n.t("borrows.form.notes")));    form.add(notesF);
+        for (JTextField f : new JTextField[]{borrowerF, phoneF, dateF, dueF, notesF})
+            Theme.styleField(f);
 
-        JPanel btns = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        JButton cancel = new JButton(I18n.t("common.cancel"));
-        JButton save   = new JButton(I18n.t("common.save"));
-        cancel.setFocusPainted(false);
-        save.setFocusPainted(false);
+        addFormRow(form, I18n.t("borrows.form.book"),     bookCombo);
+        addFormRow(form, I18n.t("borrows.form.borrower"), borrowerF);
+        addFormRow(form, I18n.t("borrows.form.phone"),    phoneF);
+        addFormRow(form, I18n.t("borrows.form.date"),     dateF);
+        addFormRow(form, I18n.t("borrows.form.due"),      dueF);
+        addFormRow(form, I18n.t("borrows.form.notes"),    notesF);
+
+        JPanel btns = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        btns.setBorder(new EmptyBorder(0, 16, 12, 16));
+        btns.setBackground(Theme.SURFACE);
+        JButton cancel = Theme.secondaryBtn(I18n.t("common.cancel"));
+        JButton save   = Theme.primaryBtn(I18n.t("common.save"));
         cancel.addActionListener(e -> dlg.dispose());
         save.addActionListener(e -> {
             String borrower = borrowerF.getText().trim();
-            if (borrower.isEmpty() || bookIds.isEmpty()) {
-                showErr(I18n.t("common.error")); return;
-            }
+            if (borrower.isEmpty() || bookIds.isEmpty()) { showErr(I18n.t("common.error")); return; }
             int idx = bookCombo.getSelectedIndex();
             if (idx < 0) { showErr(I18n.t("common.error")); return; }
             int bookId = bookIds.get(idx);
@@ -233,13 +241,23 @@ public class BorrowsPanel extends JPanel implements LanguageListener {
                         dlg::dispose,
                         msg -> JOptionPane.showMessageDialog(dlg, msg, I18n.t("common.error"), JOptionPane.ERROR_MESSAGE));
         });
-        btns.add(cancel); btns.add(save);
+        btns.add(cancel);
+        btns.add(save);
 
         JPanel root = new JPanel(new BorderLayout());
+        root.setBackground(Theme.SURFACE);
         root.add(form, BorderLayout.CENTER);
         root.add(btns, BorderLayout.SOUTH);
         dlg.setContentPane(root);
         dlg.setVisible(true);
+    }
+
+    private void addFormRow(JPanel form, String labelText, JComponent field) {
+        JLabel lbl = new JLabel(labelText);
+        lbl.setFont(Theme.regular(13));
+        lbl.setForeground(Theme.TEXT_MUTED);
+        form.add(lbl);
+        form.add(field);
     }
 
     private void showErr(String msg) {

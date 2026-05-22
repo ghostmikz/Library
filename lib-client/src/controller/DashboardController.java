@@ -24,6 +24,8 @@ public class DashboardController {
         load();
     }
 
+    public void reload() { load(); }
+
     private void load() {
         new SwingWorker<JsonObject, Void>() {
             @Override protected JsonObject doInBackground() throws Exception {

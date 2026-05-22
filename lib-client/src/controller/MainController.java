@@ -13,7 +13,6 @@ public class MainController {
 
     private final MainFrame view;
     private final User      user;
-    private BorrowsController borrowsController;
 
     public MainController(MainFrame view, User user) {
         this.view = view;
@@ -24,7 +23,7 @@ public class MainController {
 
     private void buildPanels() {
         DashboardPanel dash = new DashboardPanel();
-        new DashboardController(dash, user);
+        DashboardController dashCtrl = new DashboardController(dash, user);
         view.addPanel(dash, "DASHBOARD");
 
         BooksPanel books = new BooksPanel();
@@ -32,9 +31,17 @@ public class MainController {
         view.addPanel(books, "BOOKS");
 
         BorrowsPanel borrows = new BorrowsPanel();
-        borrowsController = new BorrowsController(borrows, user.getToken());
-        booksCtrl.setOnBooksLoaded(borrowsController::updateBooks);
+        BorrowsController borrowsCtrl = new BorrowsController(borrows, user.getToken());
         view.addPanel(borrows, "BORROWS");
+
+        // When books load, update the borrow form's available-book dropdown
+        booksCtrl.setOnBooksLoaded(borrowsCtrl::updateBooks);
+
+        // When a borrow or return happens, refresh the book list + dashboard stats
+        borrowsCtrl.setMutationListener(() -> {
+            booksCtrl.reload();
+            dashCtrl.reload();
+        });
 
         if (user.isAdmin()) {
             LibrariansPanel lib = new LibrariansPanel();
@@ -46,13 +53,15 @@ public class MainController {
     }
 
     private void doLogout() {
-        try {
-            SocketClient.getInstance().send("LOGOUT", user.getToken());
-            SocketClient.getInstance().disconnect();
-        } catch (Exception ignored) {}
         LoginFrame login = new LoginFrame();
         new LoginController(login);
         login.setVisible(true);
         view.close();
+        new Thread(() -> {
+            try {
+                SocketClient.getInstance().send("LOGOUT", user.getToken());
+                SocketClient.getInstance().disconnect();
+            } catch (Exception ignored) {}
+        }).start();
     }
 }

@@ -3,6 +3,7 @@ package view.panels;
 import i18n.I18n;
 import i18n.LanguageListener;
 import model.Book;
+import view.Theme;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -30,23 +31,26 @@ public class BooksPanel extends JPanel implements LanguageListener {
     private JComboBox<String> filterCombo;
     private DefaultTableModel model;
     private JTable table;
-    private JButton addBtn, editBtn, deleteBtn;
+    private JButton addBtn, editBtn, deleteBtn, refreshBtn;
     private JLabel searchLabel;
     private String searchQuery = "";
     private String filterMode  = "ALL";
+    private Runnable refreshListener;
 
     public BooksPanel() {
-        setLayout(new BorderLayout(8, 8));
-        setBorder(new EmptyBorder(12, 12, 12, 12));
+        setLayout(new BorderLayout(0, 12));
+        setBorder(new EmptyBorder(16, 16, 16, 16));
+        setBackground(Theme.BG);
 
         add(buildToolbar(), BorderLayout.NORTH);
         add(buildTable(),   BorderLayout.CENTER);
         add(buildActions(), BorderLayout.SOUTH);
     }
 
-    public void setBooks(List<Book> books)    { allBooks.clear(); allBooks.addAll(books); refresh(); }
-    public void setBookSaver(BookSaver s)     { this.bookSaver = s; }
-    public void setBookDeleter(BookDeleter d) { this.bookDeleter = d; }
+    public void setBooks(List<Book> books)          { allBooks.clear(); allBooks.addAll(books); refresh(); }
+    public void setBookSaver(BookSaver s)           { this.bookSaver = s; }
+    public void setBookDeleter(BookDeleter d)        { this.bookDeleter = d; }
+    public void setRefreshListener(Runnable r)       { this.refreshListener = r; }
 
     @Override
     public void onLanguageChanged() {
@@ -56,16 +60,19 @@ public class BooksPanel extends JPanel implements LanguageListener {
         filterCombo.addItem(I18n.t("books.filter.available"));
         filterCombo.addItem(I18n.t("books.filter.unavailable"));
         addBtn.setText(I18n.t("books.add"));
-        searchLabel.setText(I18n.t("books.search") + " ");
+        searchLabel.setText(I18n.t("books.search"));
         editBtn.setText(I18n.t("books.edit"));
         deleteBtn.setText(I18n.t("books.delete"));
+        refreshBtn.setText(I18n.t("dashboard.refresh"));
         refresh();
     }
 
     private JPanel buildToolbar() {
         JPanel bar = new JPanel(new BorderLayout(8, 0));
+        bar.setOpaque(false);
 
         searchField = new JTextField(20);
+        Theme.styleField(searchField);
         searchField.getDocument().addDocumentListener(new javax.swing.event.DocumentListener() {
             public void insertUpdate(javax.swing.event.DocumentEvent e)  { searchQuery = searchField.getText(); refresh(); }
             public void removeUpdate(javax.swing.event.DocumentEvent e)  { searchQuery = searchField.getText(); refresh(); }
@@ -75,6 +82,7 @@ public class BooksPanel extends JPanel implements LanguageListener {
         filterCombo = new JComboBox<>(new String[]{
             I18n.t("books.filter.all"), I18n.t("books.filter.available"), I18n.t("books.filter.unavailable")
         });
+        filterCombo.setFont(Theme.regular(13));
         filterCombo.addActionListener(e -> {
             filterMode = switch (filterCombo.getSelectedIndex()) {
                 case 1 -> "AVAILABLE"; case 2 -> "UNAVAILABLE"; default -> "ALL";
@@ -82,18 +90,29 @@ public class BooksPanel extends JPanel implements LanguageListener {
             refresh();
         });
 
-        addBtn = new JButton(I18n.t("books.add"));
-        addBtn.setFocusPainted(false);
+        addBtn = Theme.primaryBtn(I18n.t("books.add"));
         addBtn.addActionListener(e -> openForm(null));
 
-        searchLabel = new JLabel(I18n.t("books.search") + " ");
-        JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 4, 0));
+        refreshBtn = Theme.secondaryBtn(I18n.t("dashboard.refresh"));
+        refreshBtn.addActionListener(e -> { if (refreshListener != null) refreshListener.run(); });
+
+        searchLabel = new JLabel(I18n.t("books.search"));
+        searchLabel.setFont(Theme.regular(13));
+        searchLabel.setForeground(Theme.TEXT_MUTED);
+
+        JPanel left = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        left.setOpaque(false);
         left.add(searchLabel);
         left.add(searchField);
         left.add(filterCombo);
 
-        bar.add(left,   BorderLayout.CENTER);
-        bar.add(addBtn, BorderLayout.EAST);
+        JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        right.setOpaque(false);
+        right.add(refreshBtn);
+        right.add(addBtn);
+
+        bar.add(left,  BorderLayout.CENTER);
+        bar.add(right, BorderLayout.EAST);
         return bar;
     }
 
@@ -102,26 +121,24 @@ public class BooksPanel extends JPanel implements LanguageListener {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
         table = new JTable(model);
-        table.setRowHeight(26);
-        table.getTableHeader().setReorderingAllowed(false);
-        // hide id column
+        Theme.styleTable(table);
         table.getColumnModel().getColumn(0).setMinWidth(0);
         table.getColumnModel().getColumn(0).setMaxWidth(0);
         table.getColumnModel().getColumn(0).setPreferredWidth(0);
         table.getSelectionModel().addListSelectionListener(e -> updateButtons());
 
         JScrollPane sp = new JScrollPane(table);
-        view.MainFrame.modernScrollBar(sp);
+        sp.setBorder(BorderFactory.createLineBorder(Theme.BORDER, 1, true));
+        Theme.modernScrollBar(sp);
         return sp;
     }
 
     private JPanel buildActions() {
-        JPanel bar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
-        editBtn   = new JButton(I18n.t("books.edit"));
-        deleteBtn = new JButton(I18n.t("books.delete"));
-        deleteBtn.setForeground(new Color(0xDC2626));
-        editBtn.setFocusPainted(false);
-        deleteBtn.setFocusPainted(false);
+        JPanel bar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        bar.setOpaque(false);
+
+        editBtn   = Theme.secondaryBtn(I18n.t("books.edit"));
+        deleteBtn = Theme.dangerBtn(I18n.t("books.delete"));
         editBtn.setEnabled(false);
         deleteBtn.setEnabled(false);
 
@@ -143,7 +160,8 @@ public class BooksPanel extends JPanel implements LanguageListener {
 
     private void updateButtons() {
         boolean sel = table.getSelectedRow() >= 0;
-        editBtn.setEnabled(sel); deleteBtn.setEnabled(sel);
+        editBtn.setEnabled(sel);
+        deleteBtn.setEnabled(sel);
     }
 
     private Book selected() {
@@ -162,11 +180,13 @@ public class BooksPanel extends JPanel implements LanguageListener {
                     && (b.getIsbn() == null || !b.getIsbn().toLowerCase().contains(q))) continue;
             if ("AVAILABLE".equals(filterMode)   && !b.isAvailable()) continue;
             if ("UNAVAILABLE".equals(filterMode) &&  b.isAvailable()) continue;
-            model.addRow(new Object[]{ b.getId(), b.getTitle(), b.getAuthor(),
+            model.addRow(new Object[]{
+                b.getId(), b.getTitle(), b.getAuthor(),
                 b.getGenre() != null ? b.getGenre() : "",
                 b.getIsbn()  != null ? b.getIsbn()  : "",
                 b.getTotalQuantity(), b.getAvailableQuantity(),
-                b.isAvailable() ? I18n.t("books.status.available") : I18n.t("books.status.unavailable") });
+                b.isAvailable() ? I18n.t("books.status.available") : I18n.t("books.status.unavailable")
+            });
         }
     }
 
@@ -174,11 +194,12 @@ public class BooksPanel extends JPanel implements LanguageListener {
         boolean isNew = existing == null;
         JDialog dlg = new JDialog((Frame) SwingUtilities.getWindowAncestor(this),
                 I18n.t(isNew ? "books.form.add" : "books.form.edit"), true);
-        dlg.setSize(380, 340);
+        dlg.setSize(400, 360);
         dlg.setLocationRelativeTo(this);
 
-        JPanel form = new JPanel(new GridLayout(0, 2, 8, 8));
-        form.setBorder(new EmptyBorder(16, 16, 8, 16));
+        JPanel form = new JPanel(new GridLayout(0, 2, 10, 10));
+        form.setBorder(new EmptyBorder(20, 20, 12, 20));
+        form.setBackground(Theme.SURFACE);
 
         JTextField titleF  = new JTextField(existing != null ? existing.getTitle()  : "");
         JTextField authorF = new JTextField(existing != null ? existing.getAuthor() : "");
@@ -187,18 +208,20 @@ public class BooksPanel extends JPanel implements LanguageListener {
         JSpinner   totalSp = new JSpinner(new SpinnerNumberModel(existing != null ? existing.getTotalQuantity()     : 1, 0, 9999, 1));
         JSpinner   availSp = new JSpinner(new SpinnerNumberModel(existing != null ? existing.getAvailableQuantity() : 1, 0, 9999, 1));
 
-        form.add(new JLabel(I18n.t("books.form.title")));    form.add(titleF);
-        form.add(new JLabel(I18n.t("books.form.author")));   form.add(authorF);
-        form.add(new JLabel(I18n.t("books.form.genre")));    form.add(genreF);
-        form.add(new JLabel(I18n.t("books.form.isbn")));     form.add(isbnF);
-        form.add(new JLabel(I18n.t("books.form.quantity"))); form.add(totalSp);
-        form.add(new JLabel(I18n.t("books.form.available"))); form.add(availSp);
+        for (JTextField f : new JTextField[]{titleF, authorF, genreF, isbnF}) Theme.styleField(f);
 
-        JPanel btns = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        JButton cancel = new JButton(I18n.t("common.cancel"));
-        JButton save   = new JButton(I18n.t("common.save"));
-        cancel.setFocusPainted(false);
-        save.setFocusPainted(false);
+        addFormRow(form, I18n.t("books.form.title"),    titleF);
+        addFormRow(form, I18n.t("books.form.author"),   authorF);
+        addFormRow(form, I18n.t("books.form.genre"),    genreF);
+        addFormRow(form, I18n.t("books.form.isbn"),     isbnF);
+        addFormRow(form, I18n.t("books.form.quantity"), totalSp);
+        addFormRow(form, I18n.t("books.form.available"), availSp);
+
+        JPanel btns = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        btns.setBorder(new EmptyBorder(0, 16, 12, 16));
+        btns.setBackground(Theme.SURFACE);
+        JButton cancel = Theme.secondaryBtn(I18n.t("common.cancel"));
+        JButton save   = Theme.primaryBtn(I18n.t("common.save"));
         cancel.addActionListener(e -> dlg.dispose());
         save.addActionListener(e -> {
             String t = titleF.getText().trim(), a = authorF.getText().trim();
@@ -212,13 +235,23 @@ public class BooksPanel extends JPanel implements LanguageListener {
                 bookSaver.save(b, isNew, dlg::dispose,
                     msg -> JOptionPane.showMessageDialog(dlg, msg, I18n.t("common.error"), JOptionPane.ERROR_MESSAGE));
         });
-        btns.add(cancel); btns.add(save);
+        btns.add(cancel);
+        btns.add(save);
 
         JPanel root = new JPanel(new BorderLayout());
+        root.setBackground(Theme.SURFACE);
         root.add(form, BorderLayout.CENTER);
         root.add(btns, BorderLayout.SOUTH);
         dlg.setContentPane(root);
         dlg.setVisible(true);
+    }
+
+    private void addFormRow(JPanel form, String labelText, JComponent field) {
+        JLabel lbl = new JLabel(labelText);
+        lbl.setFont(Theme.regular(13));
+        lbl.setForeground(Theme.TEXT_MUTED);
+        form.add(lbl);
+        form.add(field);
     }
 
     private void showErr(String msg) {

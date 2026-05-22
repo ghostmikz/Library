@@ -16,6 +16,16 @@ public class UserDAO {
         return null;
     }
 
+    public User findById(int id) throws SQLException {
+        String sql = "SELECT id, username, password_hash, full_name, role, is_active FROM users WHERE id = ?";
+        try (PreparedStatement ps = DatabaseConnection.getInstance().prepareStatement(sql)) {
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) return mapRow(rs);
+        }
+        return null;
+    }
+
     public List<User> findAll() throws SQLException {
         List<User> list = new ArrayList<>();
         String sql = "SELECT id, username, password_hash, full_name, role, is_active FROM users ORDER BY role, full_name";

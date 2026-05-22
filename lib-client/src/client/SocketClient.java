@@ -27,6 +27,7 @@ public class SocketClient {
         String host = AppSettings.getServerHost();
         int    port = AppSettings.getServerPort();
         socket = new Socket(host, port);
+        socket.setTcpNoDelay(true);
         in  = new BufferedReader(new InputStreamReader(socket.getInputStream(),  "UTF-8"));
         out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "UTF-8"), true);
     }

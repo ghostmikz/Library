@@ -64,9 +64,11 @@ public class BooksController {
             }.execute();
         });
 
+        view.setRefreshListener(this::loadBooks);
         loadBooks();
     }
 
+    public void reload() { loadBooks(); }
     public void setOnBooksLoaded(Consumer<List<Book>> callback) { this.onBooksLoaded = callback; }
 
     private void loadBooks() {

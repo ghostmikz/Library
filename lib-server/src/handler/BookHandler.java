@@ -94,8 +94,9 @@ public class BookHandler {
 
     public static Response getDashboard(Request req, User caller) {
         try {
-            int total     = DAO.countTotal();
-            int available = DAO.countAvailable();
+            int[] counts  = DAO.countTotalAndAvailable();
+            int total     = counts[0];
+            int available = counts[1];
             List<Book> recent = DAO.findRecent(5);
             Map<String, Object> data = new HashMap<>();
             data.put("total",       total);

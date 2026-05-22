@@ -25,6 +25,7 @@ public class LibraryServer {
             System.out.println("Server ready. Waiting for clients...");
             while (true) {
                 Socket client = serverSocket.accept();
+                client.setTcpNoDelay(true);
                 System.out.println("Client connected: " + client.getInetAddress());
                 pool.execute(new ClientHandler(client));
             }

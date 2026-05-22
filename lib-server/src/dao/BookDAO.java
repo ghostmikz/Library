@@ -77,18 +77,13 @@ public class BookDAO {
         }
     }
 
-    public int countTotal() throws SQLException {
+    public int[] countTotalAndAvailable() throws SQLException {
+        String sql = "SELECT COUNT(*) AS total, SUM(available_quantity > 0) AS available FROM books";
         try (Statement st = DatabaseConnection.getInstance().createStatement();
-             ResultSet rs = st.executeQuery("SELECT COUNT(*) FROM books")) {
-            return rs.next() ? rs.getInt(1) : 0;
+             ResultSet rs = st.executeQuery(sql)) {
+            if (rs.next()) return new int[]{ rs.getInt("total"), rs.getInt("available") };
         }
-    }
-
-    public int countAvailable() throws SQLException {
-        try (Statement st = DatabaseConnection.getInstance().createStatement();
-             ResultSet rs = st.executeQuery("SELECT COUNT(*) FROM books WHERE available_quantity > 0")) {
-            return rs.next() ? rs.getInt(1) : 0;
-        }
+        return new int[]{ 0, 0 };
     }
 
     public List<Book> findRecent(int limit) throws SQLException {

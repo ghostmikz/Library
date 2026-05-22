@@ -17,6 +17,7 @@ public class BorrowsController {
     private final BorrowsPanel view;
     private final Gson gson = new Gson();
     private String token;
+    private Runnable mutationListener;
 
     public BorrowsController(BorrowsPanel view, String token) {
         this.view  = view;
@@ -28,9 +29,8 @@ public class BorrowsController {
         load();
     }
 
-    public void updateBooks(List<Book> books) {
-        view.setAvailableBooks(books);
-    }
+    public void updateBooks(List<Book> books)      { view.setAvailableBooks(books); }
+    public void setMutationListener(Runnable r)    { this.mutationListener = r; }
 
     private void load() {
         new SwingWorker<JsonObject, Void>() {
@@ -72,6 +72,7 @@ public class BorrowsController {
                     if ("OK".equals(res.get("status").getAsString())) {
                         SwingUtilities.invokeLater(onSuccess);
                         load();
+                        if (mutationListener != null) SwingUtilities.invokeLater(mutationListener);
                     } else {
                         onError.accept(res.get("message").getAsString());
                     }
@@ -94,6 +95,7 @@ public class BorrowsController {
                     if ("OK".equals(res.get("status").getAsString())) {
                         SwingUtilities.invokeLater(onSuccess);
                         load();
+                        if (mutationListener != null) SwingUtilities.invokeLater(mutationListener);
                     } else {
                         onError.accept(res.get("message").getAsString());
                     }

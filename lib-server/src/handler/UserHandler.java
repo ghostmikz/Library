@@ -71,6 +71,9 @@ public class UserHandler {
             int     id     = ((Number) d.get("id")).intValue();
             boolean active = (Boolean) d.get("active");
             if (id == caller.getId()) return Response.error("Cannot deactivate your own account");
+            User target = DAO.findById(id);
+            if (target == null)             return Response.error("User not found");
+            if (target.isAdmin())           return Response.error("Cannot change active status of an admin account");
             DAO.setActive(id, active);
             return Response.ok(null);
         } catch (Exception e) {
@@ -85,6 +88,9 @@ public class UserHandler {
             Map<String, Object> d = (Map<String, Object>) req.getData();
             int id = ((Number) d.get("id")).intValue();
             if (id == caller.getId()) return Response.error("Cannot delete your own account");
+            User target = DAO.findById(id);
+            if (target == null)   return Response.error("User not found");
+            if (target.isAdmin()) return Response.error("Cannot delete an admin account");
             DAO.delete(id);
             return Response.ok(null);
         } catch (Exception e) {

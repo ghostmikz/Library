@@ -3,6 +3,7 @@ package view.panels;
 import i18n.I18n;
 import i18n.LanguageListener;
 import model.User;
+import view.Theme;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -35,18 +36,19 @@ public class LibrariansPanel extends JPanel implements LanguageListener {
     private JButton addBtn, editBtn, toggleBtn, deleteBtn;
 
     public LibrariansPanel() {
-        setLayout(new BorderLayout(8, 8));
-        setBorder(new EmptyBorder(12, 12, 12, 12));
+        setLayout(new BorderLayout(0, 12));
+        setBorder(new EmptyBorder(16, 16, 16, 16));
+        setBackground(Theme.BG);
 
-        addBtn = new JButton(I18n.t("librarians.add"));
-        addBtn.setFocusPainted(false);
+        addBtn = Theme.primaryBtn(I18n.t("librarians.add"));
         addBtn.addActionListener(e -> openForm(null));
 
-        JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        top.setOpaque(false);
         top.add(addBtn);
 
-        add(top,          BorderLayout.NORTH);
-        add(buildTable(), BorderLayout.CENTER);
+        add(top,            BorderLayout.NORTH);
+        add(buildTable(),   BorderLayout.CENTER);
         add(buildActions(), BorderLayout.SOUTH);
     }
 
@@ -69,28 +71,26 @@ public class LibrariansPanel extends JPanel implements LanguageListener {
             @Override public boolean isCellEditable(int r, int c) { return false; }
         };
         table = new JTable(model);
-        table.setRowHeight(26);
-        table.getTableHeader().setReorderingAllowed(false);
+        Theme.styleTable(table);
         table.getColumnModel().getColumn(0).setMinWidth(0);
         table.getColumnModel().getColumn(0).setMaxWidth(0);
         table.getColumnModel().getColumn(0).setPreferredWidth(0);
         table.getSelectionModel().addListSelectionListener(e -> updateButtons());
 
         JScrollPane sp = new JScrollPane(table);
-        view.MainFrame.modernScrollBar(sp);
+        sp.setBorder(BorderFactory.createLineBorder(Theme.BORDER, 1, true));
+        Theme.modernScrollBar(sp);
         return sp;
     }
 
     private JPanel buildActions() {
-        JPanel bar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
-        editBtn   = new JButton(I18n.t("librarians.ctx.edit"));
-        toggleBtn = new JButton(I18n.t("librarians.ctx.activate"));
-        deleteBtn = new JButton(I18n.t("librarians.ctx.delete"));
-        deleteBtn.setForeground(new Color(0xDC2626));
+        JPanel bar = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        bar.setOpaque(false);
 
-        editBtn.setFocusPainted(false);
-        toggleBtn.setFocusPainted(false);
-        deleteBtn.setFocusPainted(false);
+        editBtn   = Theme.secondaryBtn(I18n.t("librarians.ctx.edit"));
+        toggleBtn = Theme.secondaryBtn(I18n.t("librarians.ctx.activate"));
+        deleteBtn = Theme.dangerBtn(I18n.t("librarians.ctx.delete"));
+
         editBtn.setEnabled(false);
         toggleBtn.setEnabled(false);
         deleteBtn.setEnabled(false);
@@ -116,7 +116,9 @@ public class LibrariansPanel extends JPanel implements LanguageListener {
                 deleter.delete(u.getId(), () -> {}, err -> showErr(err));
         });
 
-        bar.add(editBtn); bar.add(toggleBtn); bar.add(deleteBtn);
+        bar.add(editBtn);
+        bar.add(toggleBtn);
+        bar.add(deleteBtn);
         return bar;
     }
 
@@ -126,7 +128,8 @@ public class LibrariansPanel extends JPanel implements LanguageListener {
         editBtn.setEnabled(sel);
         toggleBtn.setEnabled(sel);
         deleteBtn.setEnabled(sel);
-        if (sel) toggleBtn.setText(u.isActive() ? I18n.t("librarians.ctx.deactivate") : I18n.t("librarians.ctx.activate"));
+        if (sel) toggleBtn.setText(u.isActive()
+            ? I18n.t("librarians.ctx.deactivate") : I18n.t("librarians.ctx.activate"));
     }
 
     private User selected() {
@@ -147,26 +150,31 @@ public class LibrariansPanel extends JPanel implements LanguageListener {
         boolean isNew = existing == null;
         JDialog dlg = new JDialog((Frame) SwingUtilities.getWindowAncestor(this),
                 I18n.t(isNew ? "librarians.form.add" : "librarians.form.edit"), true);
-        dlg.setSize(340, 240);
+        dlg.setSize(360, 260);
         dlg.setLocationRelativeTo(this);
 
-        JPanel form = new JPanel(new GridLayout(0, 2, 8, 8));
-        form.setBorder(new EmptyBorder(16, 16, 8, 16));
+        JPanel form = new JPanel(new GridLayout(0, 2, 10, 10));
+        form.setBorder(new EmptyBorder(20, 20, 12, 20));
+        form.setBackground(Theme.SURFACE);
 
         JTextField nameF = new JTextField(existing != null ? existing.getFullName() : "");
         JTextField userF = new JTextField(existing != null ? existing.getUsername() : "");
-        userF.setEnabled(isNew);
         JPasswordField passF = new JPasswordField();
+        userF.setEnabled(isNew);
 
-        form.add(new JLabel(I18n.t("librarians.form.name")));     form.add(nameF);
-        form.add(new JLabel(I18n.t("librarians.form.username"))); form.add(userF);
-        form.add(new JLabel(I18n.t("librarians.form.password"))); form.add(passF);
+        Theme.styleField(nameF);
+        Theme.styleField(userF);
+        Theme.styleField(passF);
 
-        JPanel btns = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        JButton cancel = new JButton(I18n.t("common.cancel"));
-        JButton save   = new JButton(I18n.t("common.save"));
-        cancel.setFocusPainted(false);
-        save.setFocusPainted(false);
+        addFormRow(form, I18n.t("librarians.form.name"),     nameF);
+        addFormRow(form, I18n.t("librarians.form.username"), userF);
+        addFormRow(form, I18n.t("librarians.form.password"), passF);
+
+        JPanel btns = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        btns.setBorder(new EmptyBorder(0, 16, 12, 16));
+        btns.setBackground(Theme.SURFACE);
+        JButton cancel = Theme.secondaryBtn(I18n.t("common.cancel"));
+        JButton save   = Theme.primaryBtn(I18n.t("common.save"));
         cancel.addActionListener(e -> dlg.dispose());
         save.addActionListener(e -> {
             String name = nameF.getText().trim(), user = userF.getText().trim();
@@ -181,13 +189,23 @@ public class LibrariansPanel extends JPanel implements LanguageListener {
                 saver.save(u, pass.isEmpty() ? null : pass, isNew, dlg::dispose,
                     msg -> JOptionPane.showMessageDialog(dlg, msg, I18n.t("common.error"), JOptionPane.ERROR_MESSAGE));
         });
-        btns.add(cancel); btns.add(save);
+        btns.add(cancel);
+        btns.add(save);
 
         JPanel root = new JPanel(new BorderLayout());
+        root.setBackground(Theme.SURFACE);
         root.add(form, BorderLayout.CENTER);
         root.add(btns, BorderLayout.SOUTH);
         dlg.setContentPane(root);
         dlg.setVisible(true);
+    }
+
+    private void addFormRow(JPanel form, String labelText, JComponent field) {
+        JLabel lbl = new JLabel(labelText);
+        lbl.setFont(Theme.regular(13));
+        lbl.setForeground(Theme.TEXT_MUTED);
+        form.add(lbl);
+        form.add(field);
     }
 
     private void showErr(String msg) {
